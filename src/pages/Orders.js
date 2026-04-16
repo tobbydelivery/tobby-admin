@@ -53,8 +53,7 @@ const Orders = () => {
   };
 
   const downloadInvoice = (orderId) => {
-    const token = localStorage.getItem("token");
-   window.open(`https://tobby-delivery-backend.onrender.com/api/invoices/${orderId}`, "_blank");
+    window.open(`https://tobby-delivery-backend.onrender.com/api/invoices/${orderId}`, "_blank");
   };
 
   const getStatusColor = (status) => {
