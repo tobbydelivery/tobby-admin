@@ -6,19 +6,14 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  useEffect(() => { fetchUsers(); }, []);
 
   const fetchUsers = async () => {
     try {
       const res = await API.get("/agents/users");
       setUsers(res.data.users);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
   };
 
   const filteredUsers = users.filter(user =>
@@ -29,74 +24,55 @@ const Users = () => {
   if (loading) return <p style={{ padding: "20px" }}>Loading users...</p>;
 
   return (
-    <div>
-      <h2 style={{ color: "#2c3e50", marginBottom: "25px" }}>👥 Users Management</h2>
+    <div style={{ fontFamily: "'Segoe UI', sans-serif" }}>
+      <div style={{ marginBottom: "25px" }}>
+        <h2 style={{ color: "#2c3e50", margin: 0, fontSize: "24px", fontWeight: "800" }}>Users Management</h2>
+        <p style={{ color: "#7f8c8d", marginTop: "5px" }}>Manage all registered users</p>
+      </div>
 
-      <input
-        type="text"
-        placeholder="Search by name or email..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        style={{
-          padding: "10px 15px",
-          border: "2px solid #ecf0f1",
-          borderRadius: "6px",
-          fontSize: "14px",
-          width: "300px",
-          marginBottom: "20px"
-        }}
-      />
+      <div style={{ background: "white", borderRadius: "16px", padding: "20px 25px", boxShadow: "0 2px 15px rgba(0,0,0,0.06)", marginBottom: "20px" }}>
+        <input type="text" placeholder="Search by name or email..." value={search} onChange={(e) => setSearch(e.target.value)}
+          style={{ padding: "12px 16px", border: "2px solid #ecf0f1", borderRadius: "10px", fontSize: "14px", width: "320px", outline: "none" }} />
+      </div>
 
-      <div style={{ background: "white", borderRadius: "12px", boxShadow: "0 2px 10px rgba(0,0,0,0.08)", overflow: "hidden" }}>
+      <div style={{ background: "white", borderRadius: "16px", boxShadow: "0 2px 15px rgba(0,0,0,0.06)", overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ background: "#2c3e50", color: "white" }}>
-              <th style={{ padding: "15px", textAlign: "left" }}>Name</th>
-              <th style={{ padding: "15px", textAlign: "left" }}>Email</th>
-              <th style={{ padding: "15px", textAlign: "left" }}>Phone</th>
-              <th style={{ padding: "15px", textAlign: "left" }}>Role</th>
-              <th style={{ padding: "15px", textAlign: "left" }}>Status</th>
-              <th style={{ padding: "15px", textAlign: "left" }}>Joined</th>
+            <tr style={{ background: "#f8f9fa" }}>
+              {["User", "Email", "Phone", "Role", "Status", "Joined"].map(h => (
+                <th key={h} style={{ padding: "14px 18px", textAlign: "left", color: "#2c3e50", fontSize: "13px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {filteredUsers.map((user, i) => (
-              <tr key={i} style={{ borderBottom: "1px solid #ecf0f1", background: i % 2 === 0 ? "white" : "#f8f9fa" }}>
-                <td style={{ padding: "12px", fontWeight: "bold" }}>{user.name}</td>
-                <td style={{ padding: "12px" }}>{user.email}</td>
-                <td style={{ padding: "12px" }}>{user.phone || "N/A"}</td>
-                <td style={{ padding: "12px" }}>
-                  <span style={{
-                    background: user.role === "admin" ? "#9b59b6" : user.role === "agent" ? "#3498db" : "#27ae60",
-                    color: "white",
-                    padding: "4px 10px",
-                    borderRadius: "20px",
-                    fontSize: "12px"
-                  }}>
+              <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                <td style={{ padding: "14px 18px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: user.role === "admin" ? "#9b59b6" : user.role === "agent" ? "#3498db" : "#27ae60", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "16px" }}>
+                      {user.name?.charAt(0)}
+                    </div>
+                    <div style={{ fontWeight: "600", fontSize: "14px" }}>{user.name}</div>
+                  </div>
+                </td>
+                <td style={{ padding: "14px 18px", fontSize: "14px", color: "#555" }}>{user.email}</td>
+                <td style={{ padding: "14px 18px", fontSize: "14px", color: "#555" }}>{user.phone || "N/A"}</td>
+                <td style={{ padding: "14px 18px" }}>
+                  <span style={{ background: user.role === "admin" ? "#f3e9fd" : user.role === "agent" ? "#ebf5fb" : "#eafaf1", color: user.role === "admin" ? "#9b59b6" : user.role === "agent" ? "#3498db" : "#27ae60", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "600" }}>
                     {user.role}
                   </span>
                 </td>
-                <td style={{ padding: "12px" }}>
-                  <span style={{
-                    background: user.isActive ? "#27ae60" : "#e74c3c",
-                    color: "white",
-                    padding: "4px 10px",
-                    borderRadius: "20px",
-                    fontSize: "12px"
-                  }}>
+                <td style={{ padding: "14px 18px" }}>
+                  <span style={{ background: user.isActive ? "#eafaf1" : "#fdedec", color: user.isActive ? "#27ae60" : "#e74c3c", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "600" }}>
                     {user.isActive ? "Active" : "Inactive"}
                   </span>
                 </td>
-                <td style={{ padding: "12px" }}>{new Date(user.createdAt).toLocaleDateString()}</td>
+                <td style={{ padding: "14px 18px", fontSize: "14px", color: "#7f8c8d" }}>{new Date(user.createdAt).toLocaleDateString()}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        {filteredUsers.length === 0 && (
-          <div style={{ padding: "40px", textAlign: "center", color: "#7f8c8d" }}>
-            No users found
-          </div>
-        )}
+        {filteredUsers.length === 0 && <div style={{ padding: "50px", textAlign: "center", color: "#7f8c8d" }}>No users found</div>}
       </div>
     </div>
   );
