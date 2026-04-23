@@ -13,6 +13,8 @@ const Layout = ({ children }) => {
     { path: "/agents", label: "Agents", icon: "🚚" },
     { path: "/users", label: "Users", icon: "👥" },
     { path: "/payments", label: "Payments", icon: "💰" },
+    { path: "/analytics", label: "Analytics", icon: "📈" },
+    { path: "/discounts", label: "Discounts", icon: "🏷️" },
   ];
 
   const handleLogout = () => {
