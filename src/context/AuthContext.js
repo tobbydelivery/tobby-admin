@@ -13,32 +13,33 @@ export const AuthProvider = ({ children }) => {
   const timeoutRef = useRef(null);
   const warningRef = useRef(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-      startSessionTimer();
-    }
-    setLoading(false);
-  }, []);
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        const savedUser = localStorage.getItem("user");
+        if (token && savedUser) {
+          setUser(JSON.parse(savedUser));
+          startSessionTimer();
+        }
+        setLoading(false);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
 
   // Track user activity
-  useEffect(() => {
+    useEffect(() => {
     const events = ["mousedown", "mousemove", "keypress", "scroll", "touchstart", "click"];
-
     const resetTimer = () => {
       if (user) {
         setSessionWarning(false);
         startSessionTimer();
       }
     };
-
     events.forEach(event => window.addEventListener(event, resetTimer));
     return () => events.forEach(event => window.removeEventListener(event, resetTimer));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  const startSessionTimer = useCallback(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+      const startSessionTimer = useCallback(() => {
     // Clear existing timers
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (warningRef.current) clearTimeout(warningRef.current);
