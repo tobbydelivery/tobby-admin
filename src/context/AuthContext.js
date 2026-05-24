@@ -54,7 +54,8 @@ export const AuthProvider = ({ children }) => {
       logout();
       alert("Your session has expired. Please login again.");
     }, SESSION_TIMEOUT);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [logout]);
 
   const login = async (email, password) => {
     const res = await API.post("/auth/login", { email, password });
