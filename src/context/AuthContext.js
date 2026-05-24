@@ -3,8 +3,8 @@ import API from "../services/api";
 
 const AuthContext = createContext();
 
-const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
-const WARNING_TIME = 5 * 60 * 1000; // Warn 5 minutes before timeout
+const SESSION_TIMEOUT = 30 * 60 * 1000;
+const WARNING_TIME = 5 * 60 * 1000;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -13,19 +13,44 @@ export const AuthProvider = ({ children }) => {
   const timeoutRef = useRef(null);
   const warningRef = useRef(null);
 
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        const savedUser = localStorage.getItem("user");
-        if (token && savedUser) {
-          setUser(JSON.parse(savedUser));
-          startSessionTimer();
-        }
-        setLoading(false);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, []);
+  // Define logout FIRST before startSessionTimer
+  const logout = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (warningRef.current) clearTimeout(warningRef.current);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("loginTime");
+    setUser(null);
+    setSessionWarning(false);
+  }, []);
 
-  // Track user activity
-    useEffect(() => {
+  // Define startSessionTimer AFTER logout
+  const startSessionTimer = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (warningRef.current) clearTimeout(warningRef.current);
+
+    warningRef.current = setTimeout(() => {
+      setSessionWarning(true);
+    }, SESSION_TIMEOUT - WARNING_TIME);
+
+    timeoutRef.current = setTimeout(() => {
+      logout();
+      alert("Your session has expired. Please login again.");
+    }, SESSION_TIMEOUT);
+  }, [logout]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
+    if (token && savedUser) {
+      setUser(JSON.parse(savedUser));
+      startSessionTimer();
+    }
+    setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     const events = ["mousedown", "mousemove", "keypress", "scroll", "touchstart", "click"];
     const resetTimer = () => {
       if (user) {
@@ -38,25 +63,6 @@ export const AuthProvider = ({ children }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-      const startSessionTimer = useCallback(() => {
-    // Clear existing timers
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    if (warningRef.current) clearTimeout(warningRef.current);
-
-    // Set warning timer
-    warningRef.current = setTimeout(() => {
-      setSessionWarning(true);
-    }, SESSION_TIMEOUT - WARNING_TIME);
-
-    // Set logout timer
-    timeoutRef.current = setTimeout(() => {
-      logout();
-      alert("Your session has expired. Please login again.");
-    }, SESSION_TIMEOUT);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [logout]);
-
   const login = async (email, password) => {
     const res = await API.post("/auth/login", { email, password });
     localStorage.setItem("token", res.data.token);
@@ -67,16 +73,6 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
-  const logout = useCallback(() => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    if (warningRef.current) clearTimeout(warningRef.current);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("loginTime");
-    setUser(null);
-    setSessionWarning(false);
-  }, []);
-
   const extendSession = () => {
     setSessionWarning(false);
     startSessionTimer();
@@ -84,7 +80,6 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, login, logout, loading, sessionWarning, extendSession }}>
-      {/* Session Warning Banner */}
       {sessionWarning && (
         <div style={{
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 9999,
