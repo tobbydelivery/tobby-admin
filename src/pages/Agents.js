@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from "react";
 import API from "../services/api";
 
+const glassStyle = {
+  background: "rgba(255,255,255,0.06)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  borderRadius: "20px",
+  boxShadow: "0 8px 32px rgba(0,0,0,0.2)"
+};
+
 const Agents = () => {
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", phone: "" });
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState({ text: "", type: "" });
+  const [focused, setFocused] = useState({});
 
   useEffect(() => { fetchAgents(); }, []);
 
@@ -22,92 +32,133 @@ const Agents = () => {
     e.preventDefault();
     try {
       await API.post("/agents", { ...form, role: "agent" });
-      setMessage("Agent created successfully!");
+      setMessage({ text: "Agent created successfully!", type: "success" });
       setForm({ name: "", email: "", password: "", phone: "" });
       setShowForm(false);
       fetchAgents();
-    } catch (err) { setMessage(err.response?.data?.error || "Error creating agent"); }
+    } catch (err) {
+      setMessage({ text: err.response?.data?.error || "Error creating agent", type: "error" });
+    }
+    setTimeout(() => setMessage({ text: "", type: "" }), 4000);
   };
 
-  if (loading) return <p style={{ padding: "20px" }}>Loading agents...</p>;
+  const inputStyle = (key) => ({
+    width: "100%", padding: "12px 14px 12px 42px",
+    background: "transparent", border: "none", outline: "none",
+    color: "white", fontSize: "14px", boxSizing: "border-box"
+  });
+
+  const fieldWrap = (key) => ({
+    position: "relative", borderRadius: "12px",
+    border: `1.5px solid ${focused[key] ? "rgba(231,76,60,0.6)" : "rgba(255,255,255,0.1)"}`,
+    background: "rgba(255,255,255,0.05)",
+    transition: "all 0.2s",
+    boxShadow: focused[key] ? "0 0 0 3px rgba(231,76,60,0.1)" : "none"
+  });
 
   return (
     <div style={{ fontFamily: "'Segoe UI', sans-serif" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px" }}>
+      <style>{`@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <div>
-          <h2 style={{ color: "#2c3e50", margin: 0, fontSize: "24px", fontWeight: "800" }}>Agents Management</h2>
-          <p style={{ color: "#7f8c8d", marginTop: "5px" }}>Manage your delivery agents</p>
+          <h2 style={{ color: "white", margin: "0 0 4px", fontSize: "22px", fontWeight: "900" }}>Agents Management</h2>
+          <p style={{ color: "rgba(255,255,255,0.4)", margin: 0, fontSize: "13px" }}>{agents.length} delivery agents registered</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} style={{ padding: "12px 24px", background: "#27ae60", color: "white", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "700", fontSize: "14px", boxShadow: "0 4px 15px rgba(39,174,96,0.3)" }}>
-          + Add New Agent
+        <button onClick={() => setShowForm(!showForm)} style={{ padding: "11px 22px", background: showForm ? "rgba(231,76,60,0.2)" : "linear-gradient(135deg, #27ae60, #1e8449)", color: showForm ? "#e74c3c" : "white", border: showForm ? "1px solid rgba(231,76,60,0.4)" : "none", borderRadius: "12px", cursor: "pointer", fontWeight: "700", fontSize: "14px", boxShadow: showForm ? "none" : "0 6px 20px rgba(39,174,96,0.35)" }}>
+          {showForm ? "✕ Cancel" : "+ Add New Agent"}
         </button>
       </div>
 
-      {message && (
-        <div style={{ background: message.includes("success") ? "#eafaf1" : "#fdedec", color: message.includes("success") ? "#27ae60" : "#e74c3c", padding: "14px 18px", borderRadius: "10px", marginBottom: "20px", borderLeft: `4px solid ${message.includes("success") ? "#27ae60" : "#e74c3c"}` }}>
-          {message}
+      {message.text && (
+        <div style={{ background: message.type === "success" ? "rgba(39,174,96,0.15)" : "rgba(231,76,60,0.15)", border: `1px solid ${message.type === "success" ? "rgba(39,174,96,0.4)" : "rgba(231,76,60,0.4)"}`, borderRadius: "14px", padding: "14px 18px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <span>{message.type === "success" ? "✅" : "⚠️"}</span>
+          <span style={{ color: message.type === "success" ? "#27ae60" : "#e74c3c", fontWeight: "600", fontSize: "14px" }}>{message.text}</span>
         </div>
       )}
 
       {showForm && (
-        <div style={{ background: "white", padding: "30px", borderRadius: "16px", boxShadow: "0 2px 15px rgba(0,0,0,0.06)", marginBottom: "25px" }}>
-          <h3 style={{ color: "#2c3e50", marginBottom: "25px", fontWeight: "700" }}>Create New Agent</h3>
+        <div style={{ ...glassStyle, padding: "28px", marginBottom: "24px", animation: "fadeUp 0.3s ease" }}>
+          <h3 style={{ color: "white", margin: "0 0 20px", fontWeight: "800", fontSize: "16px" }}>Create New Delivery Agent</h3>
           <form onSubmit={createAgent}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               {[
-                { label: "Full Name", key: "name", type: "text", placeholder: "John Doe" },
-                { label: "Email", key: "email", type: "email", placeholder: "agent@stexlogistics.com" },
-                { label: "Phone Number", key: "phone", type: "text", placeholder: "08012345678" },
-                { label: "Password", key: "password", type: "password", placeholder: "••••••••" }
+                { label: "Full Name", key: "name", icon: "👤", type: "text" },
+                { label: "Email Address", key: "email", icon: "📧", type: "email" },
+                { label: "Phone Number", key: "phone", icon: "📞", type: "text" },
+                { label: "Password", key: "password", icon: "🔒", type: "password" }
               ].map(field => (
                 <div key={field.key}>
-                  <label style={{ display: "block", marginBottom: "8px", color: "#2c3e50", fontWeight: "600", fontSize: "14px" }}>{field.label}</label>
-                  <input type={field.type} value={form[field.key]} onChange={(e) => setForm({ ...form, [field.key]: e.target.value })} required placeholder={field.placeholder}
-                    style={{ width: "100%", padding: "12px 14px", border: "2px solid #ecf0f1", borderRadius: "10px", fontSize: "14px", boxSizing: "border-box" }} />
+                  <label style={{ display: "block", marginBottom: "7px", color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: "700", letterSpacing: "0.5px" }}>{field.label.toUpperCase()}</label>
+                  <div style={fieldWrap(field.key)}>
+                    <span style={{ position: "absolute", left: "13px", top: "50%", transform: "translateY(-50%)", fontSize: "14px" }}>{field.icon}</span>
+                    <input type={field.type} value={form[field.key]} onChange={(e) => setForm({ ...form, [field.key]: e.target.value })} onFocus={() => setFocused({ ...focused, [field.key]: true })} onBlur={() => setFocused({ ...focused, [field.key]: false })} required style={inputStyle(field.key)} />
+                  </div>
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: "20px", display: "flex", gap: "12px" }}>
-              <button type="submit" style={{ padding: "12px 28px", background: "#27ae60", color: "white", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "700" }}>Create Agent</button>
-              <button type="button" onClick={() => setShowForm(false)} style={{ padding: "12px 28px", background: "#ecf0f1", color: "#2c3e50", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "700" }}>Cancel</button>
+            <div style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
+              <button type="submit" style={{ padding: "12px 28px", background: "linear-gradient(135deg, #27ae60, #1e8449)", color: "white", border: "none", borderRadius: "12px", cursor: "pointer", fontWeight: "700", fontSize: "14px", boxShadow: "0 6px 20px rgba(39,174,96,0.35)" }}>Create Agent →</button>
+              <button type="button" onClick={() => setShowForm(false)} style={{ padding: "12px 28px", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", cursor: "pointer", fontWeight: "600", fontSize: "14px" }}>Cancel</button>
             </div>
           </form>
         </div>
       )}
 
-      <div style={{ background: "white", borderRadius: "16px", boxShadow: "0 2px 15px rgba(0,0,0,0.06)", overflow: "hidden" }}>
+      <div style={{ ...glassStyle, overflow: "hidden" }}>
+        <div style={{ padding: "18px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h3 style={{ color: "white", margin: 0, fontSize: "15px", fontWeight: "800" }}>All Agents</h3>
+          <span style={{ background: "rgba(52,152,219,0.2)", color: "#3498db", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "700", border: "1px solid rgba(52,152,219,0.3)" }}>{agents.length} Total</span>
+        </div>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ background: "#f8f9fa" }}>
+            <tr>
               {["Agent", "Email", "Phone", "Status", "Joined"].map(h => (
-                <th key={h} style={{ padding: "14px 18px", textAlign: "left", color: "#2c3e50", fontSize: "13px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</th>
+                <th key={h} style={{ padding: "12px 20px", textAlign: "left", color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {agents.map((agent, i) => (
-              <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                <td style={{ padding: "14px 18px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: "#3498db", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "16px" }}>
-                      {agent.name?.charAt(0)}
+            {loading ? (
+              Array(4).fill(0).map((_, i) => (
+                <tr key={i}>
+                  {Array(5).fill(0).map((_, j) => (
+                    <td key={j} style={{ padding: "14px 20px" }}>
+                      <div style={{ height: "14px", background: "rgba(255,255,255,0.06)", borderRadius: "6px" }} />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : agents.map((agent, i) => (
+              <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", transition: "background 0.2s", cursor: "pointer" }}
+                onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                <td style={{ padding: "14px 20px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "linear-gradient(135deg, #3498db, #2980b9)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "14px", color: "white" }}>
+                      {agent.name?.charAt(0)?.toUpperCase()}
                     </div>
-                    <div style={{ fontWeight: "600", fontSize: "14px" }}>{agent.name}</div>
+                    <span style={{ fontWeight: "700", fontSize: "14px", color: "white" }}>{agent.name}</span>
                   </div>
                 </td>
-                <td style={{ padding: "14px 18px", fontSize: "14px", color: "#555" }}>{agent.email}</td>
-                <td style={{ padding: "14px 18px", fontSize: "14px", color: "#555" }}>{agent.phone || "N/A"}</td>
-                <td style={{ padding: "14px 18px" }}>
-                  <span style={{ background: agent.isActive ? "#eafaf1" : "#fdedec", color: agent.isActive ? "#27ae60" : "#e74c3c", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "600" }}>
-                    {agent.isActive ? "Active" : "Inactive"}
+                <td style={{ padding: "14px 20px", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>{agent.email}</td>
+                <td style={{ padding: "14px 20px", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>{agent.phone || "—"}</td>
+                <td style={{ padding: "14px 20px" }}>
+                  <span style={{ background: agent.isActive ? "rgba(39,174,96,0.2)" : "rgba(231,76,60,0.2)", color: agent.isActive ? "#27ae60" : "#e74c3c", padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: "700", border: `1px solid ${agent.isActive ? "rgba(39,174,96,0.3)" : "rgba(231,76,60,0.3)"}` }}>
+                    {agent.isActive ? "● Active" : "● Inactive"}
                   </span>
                 </td>
-                <td style={{ padding: "14px 18px", fontSize: "14px", color: "#7f8c8d" }}>{new Date(agent.createdAt).toLocaleDateString()}</td>
+                <td style={{ padding: "14px 20px", fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>{new Date(agent.createdAt).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        {agents.length === 0 && <div style={{ padding: "50px", textAlign: "center", color: "#7f8c8d" }}>No agents found</div>}
+        {!loading && agents.length === 0 && (
+          <div style={{ padding: "50px", textAlign: "center", color: "rgba(255,255,255,0.3)" }}>
+            <div style={{ fontSize: "36px", marginBottom: "10px" }}>🚚</div>
+            <p>No agents registered yet</p>
+          </div>
+        )}
       </div>
     </div>
   );

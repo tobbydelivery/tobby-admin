@@ -7,6 +7,9 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -31,126 +34,70 @@ const Login = () => {
   return (
     <div style={{
       minHeight: "100vh",
+      background: `linear-gradient(rgba(0,0,0,0.82), rgba(0,0,0,0.82)), url('https://i.ibb.co/XkVB3qCd/B13-E95-AC-6-A36-48-B8-8-E92-E7881-B1-FB33-A.png')`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
       display: "flex",
-      fontFamily: "'Segoe UI', sans-serif"
+      alignItems: "center",
+      justifyContent: "center",
+      fontFamily: "'Segoe UI', sans-serif",
+      padding: "20px"
     }}>
-      {/* Left Side - Branding */}
-      <div style={{
-        flex: 1,
-        background: `linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200')`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "60px",
-        color: "white"
-      }}>
-        <div style={{ textAlign: "center", maxWidth: "400px" }}>
-          <div style={{ fontSize: "60px", marginBottom: "20px" }}>🚚</div>
-          <h1 style={{ fontSize: "42px", fontWeight: "900", marginBottom: "10px" }}>STeX Logistics</h1>
-          <div style={{ color: "#e74c3c", fontSize: "13px", letterSpacing: "3px", marginBottom: "30px" }}>SWIFT • TRUSTED • EXPRESS</div>
-          <p style={{ fontSize: "16px", opacity: 0.85, lineHeight: "1.8" }}>
-            Manage your logistics operations from one powerful dashboard. Track orders, manage agents, and grow your business.
-          </p>
-          <div style={{ display: "flex", gap: "30px", justifyContent: "center", marginTop: "40px" }}>
-            {[
-              { value: "10K+", label: "Deliveries" },
-              { value: "99%", label: "Success Rate" },
-              { value: "24/7", label: "Support" }
-            ].map((stat, i) => (
-              <div key={i} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "24px", fontWeight: "900", color: "#e74c3c" }}>{stat.value}</div>
-                <div style={{ fontSize: "12px", opacity: 0.8 }}>{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <div style={{ position: "fixed", top: "-100px", right: "-100px", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(231,76,60,0.12), transparent)", pointerEvents: "none" }} />
+      <div style={{ position: "fixed", bottom: "-80px", left: "-80px", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, rgba(52,152,219,0.1), transparent)", pointerEvents: "none" }} />
 
-      {/* Right Side - Login Form */}
-      <div style={{
-        width: "480px",
-        background: "white",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "60px 50px"
-      }}>
-        <div style={{ width: "100%", maxWidth: "380px" }}>
-          <h2 style={{ color: "#2c3e50", fontSize: "28px", fontWeight: "800", marginBottom: "8px" }}>Welcome Back</h2>
-          <p style={{ color: "#7f8c8d", marginBottom: "35px" }}>Sign in to your admin dashboard</p>
+      <div style={{ width: "100%", maxWidth: "420px" }}>
+        <div style={{ textAlign: "center", marginBottom: "32px" }}>
+          <div style={{ width: "70px", height: "70px", borderRadius: "20px", background: "linear-gradient(135deg, #e74c3c, #c0392b)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: "32px", boxShadow: "0 8px 32px rgba(231,76,60,0.4)", transform: "perspective(500px) rotateX(5deg)" }}>🚚</div>
+          <h1 style={{ color: "white", fontSize: "24px", fontWeight: "900", margin: "0 0 4px" }}>STeX Logistics</h1>
+          <p style={{ color: "#e74c3c", margin: 0, fontSize: "11px", letterSpacing: "3px", fontWeight: "700" }}>ADMIN PORTAL</p>
+        </div>
+
+        <div style={{ background: "rgba(255,255,255,0.07)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderRadius: "24px", padding: "32px", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 24px 64px rgba(0,0,0,0.4)" }}>
+          <h2 style={{ color: "white", fontSize: "20px", fontWeight: "800", margin: "0 0 6px" }}>Admin Sign In</h2>
+          <p style={{ color: "rgba(255,255,255,0.4)", margin: "0 0 24px", fontSize: "13px" }}>Secure access to admin dashboard</p>
 
           {error && (
-            <div style={{
-              background: "#fee", color: "#e74c3c", padding: "12px 16px",
-              borderRadius: "8px", marginBottom: "20px", fontSize: "14px",
-              borderLeft: "4px solid #e74c3c"
-            }}>
-              {error}
+            <div style={{ background: "rgba(231,76,60,0.15)", border: "1px solid rgba(231,76,60,0.4)", borderRadius: "12px", padding: "12px 16px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
+              <span>⚠️</span>
+              <span style={{ color: "#ff6b6b", fontSize: "13px", fontWeight: "500" }}>{error}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: "20px" }}>
-              <label style={{ display: "block", marginBottom: "8px", color: "#2c3e50", fontWeight: "600", fontSize: "14px" }}>
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={{
-                  width: "100%", padding: "14px 16px", border: "2px solid #ecf0f1",
-                  borderRadius: "10px", fontSize: "15px", boxSizing: "border-box",
-                  outline: "none", transition: "border 0.2s"
-                }}
-                placeholder="admin@stexlogistics.com"
-              />
+            <div style={{ marginBottom: "18px" }}>
+              <label style={{ display: "block", marginBottom: "8px", color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: "700", letterSpacing: "0.5px" }}>EMAIL ADDRESS</label>
+              <div style={{ position: "relative", borderRadius: "14px", border: `1.5px solid ${emailFocused ? "rgba(231,76,60,0.7)" : "rgba(255,255,255,0.1)"}`, background: "rgba(255,255,255,0.05)", transition: "all 0.2s", boxShadow: emailFocused ? "0 0 0 3px rgba(231,76,60,0.12)" : "none" }}>
+                <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", fontSize: "15px" }}>📧</span>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} onFocus={() => setEmailFocused(true)} onBlur={() => setEmailFocused(false)} required
+                  style={{ width: "100%", padding: "13px 14px 13px 42px", background: "transparent", border: "none", outline: "none", color: "white", fontSize: "14px", boxSizing: "border-box" }} />
+              </div>
             </div>
 
-            <div style={{ marginBottom: "30px" }}>
-              <label style={{ display: "block", marginBottom: "8px", color: "#2c3e50", fontWeight: "600", fontSize: "14px" }}>
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                style={{
-                  width: "100%", padding: "14px 16px", border: "2px solid #ecf0f1",
-                  borderRadius: "10px", fontSize: "15px", boxSizing: "border-box",
-                  outline: "none"
-                }}
-                placeholder="••••••••"
-              />
+            <div style={{ marginBottom: "28px" }}>
+              <label style={{ display: "block", marginBottom: "8px", color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: "700", letterSpacing: "0.5px" }}>PASSWORD</label>
+              <div style={{ position: "relative", borderRadius: "14px", border: `1.5px solid ${passwordFocused ? "rgba(231,76,60,0.7)" : "rgba(255,255,255,0.1)"}`, background: "rgba(255,255,255,0.05)", transition: "all 0.2s", boxShadow: passwordFocused ? "0 0 0 3px rgba(231,76,60,0.12)" : "none" }}>
+                <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", fontSize: "15px" }}>🔒</span>
+                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} onFocus={() => setPasswordFocused(true)} onBlur={() => setPasswordFocused(false)} required
+                  style={{ width: "100%", padding: "13px 42px 13px 42px", background: "transparent", border: "none", outline: "none", color: "white", fontSize: "14px", boxSizing: "border-box" }} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "15px", padding: 0 }}>
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: "100%", padding: "15px", background: loading ? "#95a5a6" : "#e74c3c",
-                color: "white", border: "none", borderRadius: "10px", fontSize: "16px",
-                fontWeight: "700", cursor: loading ? "not-allowed" : "pointer",
-                boxShadow: "0 4px 15px rgba(231,76,60,0.3)"
-              }}
-            >
-              {loading ? "Signing in..." : "Sign In to Dashboard"}
+            <button type="submit" disabled={loading} style={{ width: "100%", padding: "14px", background: loading ? "rgba(149,165,166,0.3)" : "linear-gradient(135deg, #e74c3c, #c0392b)", color: "white", border: "none", borderRadius: "14px", fontSize: "15px", fontWeight: "700", cursor: loading ? "not-allowed" : "pointer", boxShadow: loading ? "none" : "0 8px 24px rgba(231,76,60,0.4)", letterSpacing: "0.3px" }}>
+              {loading ? "Signing in..." : "Access Admin Dashboard →"}
             </button>
           </form>
 
-          <div style={{ marginTop: "30px", padding: "20px", background: "#f8f9fa", borderRadius: "10px" }}>
-            <p style={{ color: "#7f8c8d", fontSize: "13px", margin: 0, textAlign: "center" }}>
-              🔒 Secure admin access only. Unauthorized access is prohibited.
-            </p>
+          <div style={{ marginTop: "24px", padding: "14px", background: "rgba(255,255,255,0.04)", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
+            <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px", margin: 0 }}>🔒 Authorized administrators only. Unauthorized access is prohibited.</p>
           </div>
         </div>
       </div>
+
+      <style>{`input::placeholder { color: rgba(255,255,255,0.2); } input:-webkit-autofill { -webkit-box-shadow: 0 0 0 100px rgba(255,255,255,0.05) inset !important; -webkit-text-fill-color: white !important; }`}</style>
     </div>
   );
 };
