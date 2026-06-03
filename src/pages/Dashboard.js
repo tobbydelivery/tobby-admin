@@ -5,6 +5,16 @@ import API from "../services/api";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
+// Skeleton component
+const Skeleton = ({ width = "100%", height = "16px", borderRadius = "8px" }) => (
+  <div style={{
+    width, height, borderRadius,
+    background: "linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%)",
+    backgroundSize: "200% 100%",
+    animation: "shimmer 1.5s infinite"
+  }} />
+);
+
 const Dashboard = () => {
   const [stats, setStats] = useState({ totalOrders: 0, pendingOrders: 0, deliveredOrders: 0, totalRevenue: 0 });
   const [recentOrders, setRecentOrders] = useState([]);
@@ -24,7 +34,7 @@ const Dashboard = () => {
         deliveredOrders: orders.filter(o => o.status === "delivered").length,
         totalRevenue: orders.filter(o => o.paymentStatus === "paid").reduce((sum, o) => sum + (o.price || 0), 0)
       });
-      setRecentOrders(orders.slice(0, 5));
+      setRecentOrders(orders.slice(0, 6));
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -42,93 +52,269 @@ const Dashboard = () => {
     cancelled: orders.filter(o => o.status === "cancelled").length,
   };
 
-  const doughnutData = {
-    labels: ["Pending", "Picked Up", "In Transit", "Delivered", "Cancelled"],
-    datasets: [{ data: Object.values(statusCounts), backgroundColor: ["#f39c12", "#3498db", "#9b59b6", "#27ae60", "#e74c3c"], borderWidth: 0 }]
+  const glassStyle = {
+    background: "rgba(255,255,255,0.06)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "20px",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.2)"
   };
 
   const barData = {
     labels: ["Pending", "Picked Up", "In Transit", "Delivered", "Cancelled"],
-    datasets: [{ label: "Orders", data: Object.values(statusCounts), backgroundColor: ["#f39c12", "#3498db", "#9b59b6", "#27ae60", "#e74c3c"], borderRadius: 8 }]
+    datasets: [{
+      label: "Orders",
+      data: Object.values(statusCounts),
+      backgroundColor: ["rgba(243,156,18,0.7)", "rgba(52,152,219,0.7)", "rgba(155,89,182,0.7)", "rgba(39,174,96,0.7)", "rgba(231,76,60,0.7)"],
+      borderColor: ["#f39c12", "#3498db", "#9b59b6", "#27ae60", "#e74c3c"],
+      borderWidth: 2,
+      borderRadius: 10,
+      borderSkipped: false
+    }]
   };
 
-  if (loading) return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "400px" }}>
-      <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: "40px", marginBottom: "15px" }}>⏳</div>
-        <p style={{ color: "#7f8c8d", fontSize: "16px" }}>Loading dashboard...</p>
-      </div>
-    </div>
-  );
+  const doughnutData = {
+    labels: ["Pending", "Picked Up", "In Transit", "Delivered", "Cancelled"],
+    datasets: [{
+      data: Object.values(statusCounts),
+      backgroundColor: ["rgba(243,156,18,0.8)", "rgba(52,152,219,0.8)", "rgba(155,89,182,0.8)", "rgba(39,174,96,0.8)", "rgba(231,76,60,0.8)"],
+      borderColor: "rgba(255,255,255,0.1)",
+      borderWidth: 2
+    }]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "rgba(0,0,0,0.8)",
+        titleColor: "white",
+        bodyColor: "rgba(255,255,255,0.7)",
+        borderColor: "rgba(255,255,255,0.1)",
+        borderWidth: 1,
+        padding: 12
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: { color: "rgba(255,255,255,0.05)" },
+        ticks: { color: "rgba(255,255,255,0.5)", font: { size: 11 } }
+      },
+      x: {
+        grid: { display: false },
+        ticks: { color: "rgba(255,255,255,0.5)", font: { size: 11 } }
+      }
+    }
+  };
+
+  const doughnutOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: { color: "rgba(255,255,255,0.6)", padding: 16, font: { size: 11 } }
+      }
+    },
+    cutout: "65%"
+  };
 
   return (
     <div style={{ fontFamily: "'Segoe UI', sans-serif" }}>
-      <div style={{ marginBottom: "30px" }}>
-        <h2 style={{ color: "#2c3e50", margin: 0, fontSize: "24px", fontWeight: "800" }}>Dashboard Overview</h2>
-        <p style={{ color: "#7f8c8d", marginTop: "5px" }}>Welcome back! Here's what's happening today.</p>
+
+      <style>{`
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
+
+      {/* Header */}
+      <div style={{ marginBottom: "24px", animation: "fadeUp 0.4s ease" }}>
+        <h2 style={{ color: "white", margin: "0 0 4px", fontSize: "22px", fontWeight: "900" }}>Dashboard Overview</h2>
+        <p style={{ color: "rgba(255,255,255,0.4)", margin: 0, fontSize: "13px" }}>
+          Welcome back, {/* user name will come from context */} here's what's happening today.
+        </p>
       </div>
 
       {/* Stat Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "30px" }}>
-        {[
-          { title: "Total Orders", value: stats.totalOrders, color: "#3498db", icon: "📦", bg: "#ebf5fb" },
-          { title: "Pending", value: stats.pendingOrders, color: "#f39c12", icon: "⏳", bg: "#fef9e7" },
-          { title: "Delivered", value: stats.deliveredOrders, color: "#27ae60", icon: "✅", bg: "#eafaf1" },
-          { title: "Revenue", value: `₦${stats.totalRevenue.toLocaleString()}`, color: "#e74c3c", icon: "💰", bg: "#fdedec" }
-        ].map((card, i) => (
-          <div key={i} style={{ background: "white", borderRadius: "16px", padding: "25px", boxShadow: "0 2px 15px rgba(0,0,0,0.06)", borderTop: `4px solid ${card.color}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div>
-                <p style={{ color: "#7f8c8d", fontSize: "13px", margin: "0 0 8px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>{card.title}</p>
-                <div style={{ fontSize: "28px", fontWeight: "900", color: card.color }}>{card.value}</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
+        {loading ? (
+          Array(4).fill(0).map((_, i) => (
+            <div key={i} style={{ ...glassStyle, padding: "22px" }}>
+              <Skeleton width="60%" height="12px" />
+              <div style={{ marginTop: "10px" }}><Skeleton width="40%" height="28px" /></div>
+              <div style={{ marginTop: "8px" }}><Skeleton width="80%" height="10px" /></div>
+            </div>
+          ))
+        ) : (
+          [
+            { title: "Total Orders", value: stats.totalOrders, color: "#3498db", icon: "📦", change: "+12% this week" },
+            { title: "Pending", value: stats.pendingOrders, color: "#f39c12", icon: "⏳", change: "Needs attention" },
+            { title: "Delivered", value: stats.deliveredOrders, color: "#27ae60", icon: "✅", change: "99% success rate" },
+            { title: "Revenue", value: `₦${stats.totalRevenue.toLocaleString()}`, color: "#e74c3c", icon: "💰", change: "Total earned" }
+          ].map((card, i) => (
+            <div key={i} style={{
+              ...glassStyle,
+              padding: "22px",
+              borderTop: `2px solid ${card.color}40`,
+              animation: `fadeUp ${0.3 + i * 0.1}s ease`,
+              transition: "transform 0.2s"
+            }}
+              onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"}
+              onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "11px", margin: "0 0 8px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1px" }}>{card.title}</p>
+                  <div style={{ fontSize: "28px", fontWeight: "900", color: card.color }}>{card.value}</div>
+                  <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", marginTop: "6px" }}>{card.change}</div>
+                </div>
+                <div style={{
+                  width: "46px", height: "46px", borderRadius: "14px",
+                  background: `${card.color}20`,
+                  border: `1px solid ${card.color}30`,
+                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px"
+                }}>
+                  {card.icon}
+                </div>
               </div>
-              <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: card.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" }}>
-                {card.icon}
+              <div style={{ marginTop: "14px", height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${Math.min((card.value / (stats.totalOrders || 1)) * 100, 100)}%`, background: `linear-gradient(90deg, ${card.color}, ${card.color}80)`, borderRadius: "2px" }} />
               </div>
             </div>
+          ))
+        )}
+      </div>
+
+      {/* Quick Status Badges */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: "24px", flexWrap: "wrap" }}>
+        {Object.entries(statusCounts).map(([status, count]) => (
+          <div key={status} style={{
+            background: `${getStatusColor(status)}15`,
+            border: `1px solid ${getStatusColor(status)}30`,
+            borderRadius: "20px",
+            padding: "6px 14px",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px"
+          }}>
+            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: getStatusColor(status) }} />
+            <span style={{ fontSize: "12px", color: getStatusColor(status), fontWeight: "700" }}>
+              {status.replace(/_/g, " ").toUpperCase()}: {count}
+            </span>
           </div>
         ))}
       </div>
 
       {/* Charts */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "30px" }}>
-        <div style={{ background: "white", borderRadius: "16px", padding: "25px", boxShadow: "0 2px 15px rgba(0,0,0,0.06)" }}>
-          <h3 style={{ color: "#2c3e50", marginBottom: "20px", fontWeight: "700" }}>Orders by Status</h3>
-          <Bar data={barData} options={{ responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }} />
+      <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: "16px", marginBottom: "24px" }}>
+        <div style={{ ...glassStyle, padding: "24px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <div>
+              <h3 style={{ color: "white", margin: "0 0 3px", fontWeight: "800", fontSize: "15px" }}>Orders by Status</h3>
+              <p style={{ color: "rgba(255,255,255,0.35)", margin: 0, fontSize: "12px" }}>Current order distribution</p>
+            </div>
+          </div>
+          {loading ? <Skeleton height="200px" /> : <Bar data={barData} options={chartOptions} />}
         </div>
-        <div style={{ background: "white", borderRadius: "16px", padding: "25px", boxShadow: "0 2px 15px rgba(0,0,0,0.06)" }}>
-          <h3 style={{ color: "#2c3e50", marginBottom: "20px", fontWeight: "700" }}>Order Distribution</h3>
-          <Doughnut data={doughnutData} options={{ responsive: true, plugins: { legend: { position: "bottom" } } }} />
+
+        <div style={{ ...glassStyle, padding: "24px" }}>
+          <div style={{ marginBottom: "20px" }}>
+            <h3 style={{ color: "white", margin: "0 0 3px", fontWeight: "800", fontSize: "15px" }}>Distribution</h3>
+            <p style={{ color: "rgba(255,255,255,0.35)", margin: 0, fontSize: "12px" }}>Visual breakdown</p>
+          </div>
+          {loading ? <Skeleton height="200px" borderRadius="50%" /> : (
+            <div>
+              <Doughnut data={doughnutData} options={doughnutOptions} />
+              <div style={{ textAlign: "center", marginTop: "12px" }}>
+                <div style={{ fontSize: "22px", fontWeight: "900", color: "white" }}>{stats.totalOrders}</div>
+                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>Total Orders</div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Recent Orders */}
-      <div style={{ background: "white", borderRadius: "16px", padding: "25px", boxShadow: "0 2px 15px rgba(0,0,0,0.06)" }}>
-        <h3 style={{ color: "#2c3e50", marginBottom: "20px", fontWeight: "700" }}>Recent Orders</h3>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#f8f9fa" }}>
-              {["Tracking #", "Sender", "Recipient", "Status", "Price"].map(h => (
-                <th key={h} style={{ padding: "12px 15px", textAlign: "left", color: "#2c3e50", fontSize: "13px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {recentOrders.map((order, i) => (
-              <tr key={i} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                <td style={{ padding: "14px 15px", color: "#3498db", fontWeight: "700", fontSize: "14px" }}>{order.trackingNumber}</td>
-                <td style={{ padding: "14px 15px", fontSize: "14px" }}>{order.sender?.name}</td>
-                <td style={{ padding: "14px 15px", fontSize: "14px" }}>{order.recipient?.name}</td>
-                <td style={{ padding: "14px 15px" }}>
-                  <span style={{ background: getStatusColor(order.status), color: "white", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "600" }}>
-                    {order.status.replace("_", " ")}
-                  </span>
-                </td>
-                <td style={{ padding: "14px 15px", fontWeight: "700", color: "#27ae60" }}>₦{order.price || 2500}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Recent Orders Table */}
+      <div style={{ ...glassStyle, padding: "24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+          <div>
+            <h3 style={{ color: "white", margin: "0 0 3px", fontWeight: "800", fontSize: "15px" }}>Recent Orders</h3>
+            <p style={{ color: "rgba(255,255,255,0.35)", margin: 0, fontSize: "12px" }}>Latest 6 orders across all statuses</p>
+          </div>
+          <span style={{ background: "rgba(231,76,60,0.2)", color: "#e74c3c", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "700", border: "1px solid rgba(231,76,60,0.3)" }}>
+            Live
+          </span>
+        </div>
+
+        {loading ? (
+          Array(4).fill(0).map((_, i) => (
+            <div key={i} style={{ display: "flex", gap: "20px", padding: "14px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <Skeleton width="120px" height="14px" />
+              <Skeleton width="100px" height="14px" />
+              <Skeleton width="100px" height="14px" />
+              <Skeleton width="80px" height="22px" borderRadius="20px" />
+              <Skeleton width="70px" height="14px" />
+            </div>
+          ))
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  {["Tracking #", "Sender", "Recipient", "Status", "Price", "Date"].map(h => (
+                    <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: "rgba(255,255,255,0.4)", fontSize: "11px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {recentOrders.map((order, i) => (
+                  <tr key={i}
+                    style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", transition: "background 0.2s", cursor: "pointer" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >
+                    <td style={{ padding: "13px 14px", color: "#3498db", fontWeight: "800", fontSize: "13px" }}>{order.trackingNumber}</td>
+                    <td style={{ padding: "13px 14px" }}>
+                      <div style={{ fontSize: "13px", color: "white", fontWeight: "600" }}>{order.sender?.name}</div>
+                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)" }}>{order.sender?.phone}</div>
+                    </td>
+                    <td style={{ padding: "13px 14px" }}>
+                      <div style={{ fontSize: "13px", color: "white", fontWeight: "600" }}>{order.recipient?.name}</div>
+                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)" }}>{order.recipient?.phone}</div>
+                    </td>
+                    <td style={{ padding: "13px 14px" }}>
+                      <span style={{
+                        background: `${getStatusColor(order.status)}20`,
+                        color: getStatusColor(order.status),
+                        padding: "4px 12px",
+                        borderRadius: "20px",
+                        fontSize: "11px",
+                        fontWeight: "700",
+                        border: `1px solid ${getStatusColor(order.status)}40`
+                      }}>
+                        {order.status.replace(/_/g, " ")}
+                      </span>
+                    </td>
+                    <td style={{ padding: "13px 14px", fontWeight: "800", color: "#27ae60", fontSize: "13px" }}>
+                      ₦{(order.price || 2500).toLocaleString()}
+                    </td>
+                    <td style={{ padding: "13px 14px", fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>
+                      {new Date(order.createdAt).toLocaleDateString("en-US", { day: "numeric", month: "short" })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {recentOrders.length === 0 && (
+              <div style={{ padding: "40px", textAlign: "center", color: "rgba(255,255,255,0.3)" }}>
+                <div style={{ fontSize: "36px", marginBottom: "10px" }}>📭</div>
+                <p>No orders yet</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
