@@ -19,6 +19,7 @@ const Analytics = () => {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("week");
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchAnalytics(); }, [period]);
 
   const fetchAnalytics = async () => {
